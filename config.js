@@ -10,8 +10,8 @@ function convertToBool(text, fault = "true") {
 const now = new Date();
 
 module.exports = {
-  SESSION_ID: process.env.SESSION_ID || "MYRwkJoI#lkQ4RPKEG6LkP20VjHOmiafIEms_D_ryhJkIZdh9jN0",
-  OWNER_NUM: process.env.OWNER_NUM || "94702560019",
+  SESSION_ID: process.env.SESSION_ID || "tQ5WlbKR#fqJuGFSO5ckE5-lXsd68qG1W6r_CeKvZF5tYFoXDI-I",
+  OWNER_NUM: process.env.OWNER_NUM || "94713670127",
   PREFIX: process.env.PREFIX || ".",
   ALIVE_IMG: process.env.ALIVE_IMG || "https://telegra.ph/file/c1737376abe4978d2c556.jpg",
   ALIVE_MSG: process.env.ALIVE_MSG || `
