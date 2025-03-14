@@ -1,4 +1,5 @@
 const { cmd } = require("../command");
+const axios = require("axios");
 
 cmd(
   {
@@ -10,54 +11,45 @@ cmd(
   },
   async (robin, mek, m, { from, q, reply }) => {
     try {
-      // Dynamically import node-fetch
-      const fetch = (await import("node-fetch")).default;
-
-      // Check if an app ID or URL is provided
+      // Check if an app ID or name is provided
       if (!q) return reply("Example: `.apk com.example.app` or `.apk [app name]`");
 
       const appId = q.trim();
 
-      // API configuration (replace with your APK download API)
+      // API URL
       const API_URL = `https://www.dark-yasiya-api.site/download/apk?id=${encodeURIComponent(appId)}`;
 
       // Notify user of progress
       const processingMsg = await reply("📂 *Processing APK Download...*");
 
       // Fetch APK info from API
-      const response = await fetch(API_URL);
-      console.log("API Response:", response); // Debugging
-
-      if (!response.ok) {
-        return reply(`❌ API Error: ${response.status} ${response.statusText}`);
-      }
-
-      const result = await response.json();
+      const response = await axios.get(API_URL);
+      const result = response.data;
       console.log("API Result:", result); // Debugging
 
       // Check if the response is valid
-      if (!result || !result.downloadUrl) {
-        return reply("❌ Error: Invalid API response. Check the app ID or API status.");
+      if (!result.status || !result.result || !result.result.dl_link) {
+        return reply("❌ Error: Couldn't fetch APK. Check the app ID or API status.");
       }
 
-      const apkUrl = result.downloadUrl;
-      const appName = result.name || "Unknown App";
-      const version = result.version || "Unknown";
-      const size = result.size || "Unknown";
+      const downloadUrl = result.result.dl_link;
+      const appName = result.result.name || "Unknown App";
+      const version = result.result.lastUpdate || "Unknown";
+      const size = result.result.size || "Unknown";
 
       // Create a formatted caption
       const caption = `*❄️ Frozen Queen APK Downloader ❄️*\n\n` +
         `📱 *App*: ${appName}\n` +
         `🔢 *Version*: ${version}\n` +
         `📦 *Size*: ${size}\n` +
-        `🔗 *Download URL*: [Click here to download](${apkUrl})\n\n` +
+        `🔗 *Download URL*: [Click here to download](${downloadUrl})\n\n` +
         `*Made with 💙 by Frozen Queen Team*`;
 
       // Send the APK file with the caption
       const apkMsg = await robin.sendMessage(
         from,
         {
-          document: { url: apkUrl },
+          document: { url: downloadUrl },
           mimetype: "application/vnd.android.package-archive",
           fileName: `${appName}.apk`,
           caption: caption,
