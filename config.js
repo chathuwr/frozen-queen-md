@@ -50,6 +50,7 @@ module.exports = {
   AUTO_REPLY : process.env.AUTO_REPLY || "true",
   AUTO_REPLY_STATUS: process.env.AUTO_REPLY_STATUS || "true",
   GEMINI_API_KEY: process.env.GEMINI_API_KEY  || "AIzaSyBiSb7bbTIFpXsTntRAdyHYdqwjG_hVYy4",
-  MOVIE_API_KEY:process.env.  MOVIE_API_KEY || "sky|c9276ebad25fd135593f13cd0f699524c0bd828d"
+  MOVIE_API_KEY:process.env.MOVIE_API_KEY || "sky|c9276ebad25fd135593f13cd0f699524c0bd828d",
+  FB_API_KEY:process.env.FB_API_KEY || "sky|f4896be611207393334a47605181ea769d660c3d"
 };
 
