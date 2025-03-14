@@ -19,7 +19,7 @@ cmd(
         from,
         {
           image: { url: "https://github.com/chathurahansaka1/help/blob/main/src/f52f8647-b0fd-4f66-9cfa-00087fc06f9b.jpg?raw=true" },
-          caption: "❄️ *Frozen Queen Processing Your APK...* ❄️"
+          caption: "❄️*Frozen Queen Processing Your APK...*❄️"
         },
         { quoted: mek }
       );
