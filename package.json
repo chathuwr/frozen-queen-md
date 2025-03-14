@@ -32,6 +32,8 @@
     "gtts": "^0.2.1",                         
     "youtube-sr": "^4.3.11",                 
     "ytdl-core": "^4.11.5",
-     "@distube/ytdl-core": "^4.16.4"  
+     "@distube/ytdl-core": "^4.16.4",
+     "@mtatko/tiktok-scraper": "^2.8.0",
+       "puppeteer": "^24.4.0 "
   }
 }
