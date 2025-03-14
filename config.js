@@ -13,7 +13,7 @@ module.exports = {
   SESSION_ID: process.env.SESSION_ID || "tQ5WlbKR#fqJuGFSO5ckE5-lXsd68qG1W6r_CeKvZF5tYFoXDI-I",
   OWNER_NUM: process.env.OWNER_NUM || "94713670127",
   PREFIX: process.env.PREFIX || ".",
-  ALIVE_IMG: process.env.ALIVE_IMG || "https://telegra.ph/file/c1737376abe4978d2c556.jpg",
+  ALIVE_IMG: process.env.ALIVE_IMG || "https://github.com/chathurahansaka1/help/blob/main/src/f52f8647-b0fd-4f66-9cfa-00087fc06f9b.jpg?raw=true",
   ALIVE_MSG: process.env.ALIVE_MSG || `
 ╔══════════════════════════════╗
 ║  🌟 *❄️Frozen Queen❄️ WHATSAPP BOT* 🌟  ║
