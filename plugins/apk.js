@@ -1,3 +1,5 @@
+const { cmd } = require("../command");
+
 cmd(
   {
     pattern: "apk",
@@ -6,37 +8,42 @@ cmd(
     category: "download",
     filename: __filename,
   },
-  async (
-    robin,
-    mek,
-    m,
-    { from, q, reply }
-  ) => {
+  async (robin, mek, m, { from, q, reply }) => {
     try {
+      // Dynamically import node-fetch
+      const fetch = (await import("node-fetch")).default;
+
       // Check if an app ID or URL is provided
-      if (!q) return reply("Ex: `.apk com.example.app` or `.apk [app name]`");
+      if (!q) return reply("Example: `.apk com.example.app` or `.apk [app name]`");
 
       const appId = q.trim();
-      
+
       // API configuration (replace with your APK download API)
-      const API_URL = `https://api.example.com/apk?app=${encodeURIComponent(appId)}`;
+      const API_URL = `https://www.dark-yasiya-api.site/download/apk?id=${encodeURIComponent(appId)}`;
 
       // Notify user of progress
       const processingMsg = await reply("📂 *Processing APK Download...*");
 
       // Fetch APK info from API
       const response = await fetch(API_URL);
-      const result = await response.json();
+      console.log("API Response:", response); // Debugging
 
-      // Check if the response is valid
-      if (result.code !== 0 || !result.data || !result.data.downloadUrl) {
-        return reply("❌ Error: Couldn't fetch APK. Check the app ID or API status.");
+      if (!response.ok) {
+        return reply(`❌ API Error: ${response.status} ${response.statusText}`);
       }
 
-      const apkUrl = result.data.downloadUrl;
-      const appName = result.data.name || "Unknown App";
-      const version = result.data.version || "Unknown";
-      const size = result.data.size || "Unknown";
+      const result = await response.json();
+      console.log("API Result:", result); // Debugging
+
+      // Check if the response is valid
+      if (!result || !result.downloadUrl) {
+        return reply("❌ Error: Invalid API response. Check the app ID or API status.");
+      }
+
+      const apkUrl = result.downloadUrl;
+      const appName = result.name || "Unknown App";
+      const version = result.version || "Unknown";
+      const size = result.size || "Unknown";
 
       // Create a formatted caption
       const caption = `*❄️ Frozen Queen APK Downloader ❄️*\n\n` +
@@ -46,31 +53,29 @@ cmd(
         `🔗 *Download URL*: [Click here to download](${apkUrl})\n\n` +
         `*Made with 💙 by Frozen Queen Team*`;
 
-      // Send the APK download link with the caption
+      // Send the APK file with the caption
       const apkMsg = await robin.sendMessage(
         from,
         {
           document: { url: apkUrl },
-          mimetype: 'application/vnd.android.package-archive',
+          mimetype: "application/vnd.android.package-archive",
           fileName: `${appName}.apk`,
-          caption: caption
+          caption: caption,
         },
         { quoted: mek }
       );
 
-      // Try to add a reaction to the APK message
-      try {
-        if (apkMsg && apkMsg.key) {
-          await robin.sendMessage(from, { react: { text: "📂", key: apkMsg.key } });
-        }
-      } catch (reactionError) {
-        console.log("Reaction error:", reactionError);
+      // Add a reaction to the APK message
+      if (apkMsg && apkMsg.key) {
+        await robin.sendMessage(from, { react: { text: "📂", key: apkMsg.key } });
       }
+
+      // Delete the processing message
+      await robin.sendMessage(from, { delete: processingMsg.key });
+
     } catch (e) {
       console.error("Error in APK download:", e);
       return reply(`❌ Error: ${e.message || "Something went wrong."}`);
     }
   }
 );
-
-// Let me know if you want me to fine-tune this! 🚀
