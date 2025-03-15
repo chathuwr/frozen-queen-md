@@ -2,26 +2,19 @@ const { cmd } = require("../command");
 const axios = require("axios"); // Install axios using: npm install axios
 
 // Global variables to manage auto-news
-let hiruDeranaInterval = null; // Interval for Hiru and Derana (every 30 minutes)
-let otherPlatformsInterval = null; // Interval for other platforms (every 1 hour)
+let newsInterval = null;
 let autoNewsGroupId = null;
+let lastSentNewsTitle = null; // Store the title of the last sent news
 
-// Supported news sources and their API endpoints
-const newsSources = {
-  hiru: "https://suhas-bro-api.vercel.app/news/hiru",
-  derana: "https://suhas-bro-api.vercel.app/news/derana",
-  sirasa: "https://suhas-bro-api.vercel.app/news/sirasa",
-  lankadeepa: "https://suhas-bro-api.vercel.app/news/lankadeepa",
-  itn: "https://suhas-bro-api.vercel.app/news/itn",
-  siyatha: "https://suhas-bro-api.vercel.app/news/siyatha",
-};
+// Hiru News API endpoint
+const hiruNewsApi = "https://suhas-bro-api.vercel.app/news/hiru";
 
 cmd(
   {
     pattern: "autonews",
     alias: ["autohirunews"],
     react: "📰",
-    desc: "Enable or disable automatic news updates",
+    desc: "Enable or disable automatic Hiru news updates",
     category: "utility",
     filename: __filename,
   },
@@ -58,8 +51,7 @@ cmd(
       const action = args[0]?.toLowerCase(); // Get the action (on/off)
 
       if (action === "on") {
-        // Enable auto-news
-        if (hiruDeranaInterval || otherPlatformsInterval) {
+        if (newsInterval) {
           return reply("*❌ Auto news is already enabled!*");
         }
 
@@ -67,60 +59,45 @@ cmd(
           return reply("*❌ This command can only be used in a group!*");
         }
 
-        // Store the group ID
         autoNewsGroupId = from;
+        const savedMek = { ...mek };
 
-        // Start the interval for Hiru and Derana (every 30 minutes)
-        hiruDeranaInterval = setInterval(async () => {
+        // Fetch and send the latest Hiru news immediately
+        const initialNews = await fetchNews(hiruNewsApi);
+        if (initialNews) {
+          await sendNews(robin, autoNewsGroupId, initialNews, "HIRU", savedMek);
+          lastSentNewsTitle = initialNews.title; // Store the title of the sent news
+        } else {
+          reply("*❌ Failed to fetch initial Hiru news!*");
+        }
+
+        // Start checking for new updates every 5 minutes
+        newsInterval = setInterval(async () => {
           try {
-            // Fetch and send Hiru news
-            const hiruNews = await fetchNews(newsSources.hiru);
-            if (hiruNews) {
-              await sendNews(hiruNews, "HIRU");
-            }
-
-            // Fetch and send Derana news
-            const deranaNews = await fetchNews(newsSources.derana);
-            if (deranaNews) {
-              await sendNews(deranaNews, "DERANA");
+            const news = await fetchNews(hiruNewsApi);
+            if (news && news.title !== lastSentNewsTitle) { // Check if it's a new news item
+              await sendNews(robin, autoNewsGroupId, news, "HIRU", savedMek);
+              lastSentNewsTitle = news.title; // Update the last sent news title
             }
           } catch (e) {
-            console.error("Hiru/Derana auto-news error:", e);
+            console.error("Auto-news check error:", e);
           }
-        }, 1800000); // 30 minutes interval (1800000 ms)
-
-        // Start the interval for other platforms (every 1 hour)
-        otherPlatformsInterval = setInterval(async () => {
-          try {
-            // Fetch and send news from other platforms
-            const platforms = ["sirasa", "lankadeepa", "itn", "siyatha"];
-            for (const platform of platforms) {
-              const news = await fetchNews(newsSources[platform]);
-              if (news) {
-                await sendNews(news, platform.toUpperCase());
-              }
-            }
-          } catch (e) {
-            console.error("Other platforms auto-news error:", e);
-          }
-        }, 3600000); // 1 hour interval (3600000 ms)
+        }, 300000); // 5 minutes (300000 ms)
 
         return reply(
-          "*✅ Auto news enabled!*\n" +
-          "- Hiru and Derana news will be sent every 30 minutes.\n" +
-          "- Other platforms (Sirasa, Lankadeepa, ITN, Siyatha) news will be sent every hour."
+          "*✅ Auto news enabled for Hiru!*\n" +
+          "- Latest news sent immediately.\n" +
+          "- New updates will be checked every 5 minutes and sent to this group."
         );
       } else if (action === "off") {
-        // Disable auto-news
-        if (!hiruDeranaInterval && !otherPlatformsInterval) {
+        if (!newsInterval) {
           return reply("*❌ Auto news is not enabled!*");
         }
 
-        clearInterval(hiruDeranaInterval);
-        clearInterval(otherPlatformsInterval);
-        hiruDeranaInterval = null;
-        otherPlatformsInterval = null;
+        clearInterval(newsInterval);
+        newsInterval = null;
         autoNewsGroupId = null;
+        lastSentNewsTitle = null;
 
         return reply("*✅ Auto news disabled!*");
       } else {
@@ -139,7 +116,8 @@ async function fetchNews(apiUrl) {
     const response = await axios.get(apiUrl, { timeout: 10000 }); // 10 seconds timeout
 
     if (!response.data || !response.data.status || !response.data.result) {
-      throw new Error("No news found.");
+      console.log("No news found or invalid response format.");
+      return null;
     }
 
     return response.data.result;
@@ -150,10 +128,15 @@ async function fetchNews(apiUrl) {
 }
 
 // Function to send news to the group
-async function sendNews(news, source) {
+async function sendNews(client, groupId, news, source, replyTo) {
   try {
-    await robin.sendMessage(
-      autoNewsGroupId,
+    if (!groupId) {
+      console.error("No group ID available for sending news");
+      return;
+    }
+
+    await client.sendMessage(
+      groupId,
       {
         image: { url: news.img },
         caption: `
@@ -167,8 +150,9 @@ async function sendNews(news, source) {
 *❄️ Frozen Queen Auto News Generated ❄️*
         `,
       },
-      { quoted: mek }
+      { quoted: replyTo }
     );
+    console.log(`Successfully sent ${source} news to group`);
   } catch (e) {
     console.error("Failed to send news:", e);
   }
