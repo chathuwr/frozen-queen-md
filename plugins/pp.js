@@ -2,12 +2,12 @@ const { cmd, commands } = require("../command");
 const axios = require("axios");
 const cheerio = require("cheerio");
 
-// Pastpaper Command (List Papers with Search)
+// Pastpaper Command (List Papers with Categories and Numbers)
 cmd(
   {
     pattern: "pastpaper",
     react: "📑",
-    desc: "List or search past papers from GovDoc",
+    desc: "List past papers from GovDoc by category with numbered options",
     category: "download",
     filename: __filename,
   },
@@ -20,76 +20,109 @@ cmd(
     try {
       await reply("📑 *Fetching past papers from GovDoc...*");
 
-      const initialResponse = await axios.get("https://govdoc.lk/", {
-        headers: { "User-Agent": "Mozilla/5.0" },
-      });
-      const cookies = initialResponse.headers["set-cookie"]?.join("; ") || "";
-      const $ = cheerio.load(initialResponse.data);
-      const papers = [];
+      // Start with the main page or a specific past papers page
+      let url = "https://govdoc.lk/category/past-papers"; // Adjust if needed
+      let response;
+      try {
+        response = await axios.get(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+      } catch (e) {
+        console.log(`Past papers page failed: ${e.message}. Falling back to main page.`);
+        url = "https://govdoc.lk/";
+        response = await axios.get(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+      }
 
-      // Try broader selector first, then filter
+      const $ = cheerio.load(response.data);
+      const allLinks = [];
+      const categorizedPapers = {
+        "Past Papers": [],
+        "Syllabus": [],
+        "Teacher Guides": [],
+        "Text Books": [],
+        "Others": []
+      };
+
+      // Scrape all links
       $("a[href]").each((index, element) => {
-        let link = $(element).attr("href");
-        const title = $(element).text().trim() || `Paper ${index + 1}`;
-
-        // Check if it’s a download link
-        if (link && link.includes("/download/")) {
-          if (!link.startsWith("http")) {
-            link = "https://govdoc.lk" + (link.startsWith("/") ? "" : "/") + link;
-          }
-          if (title && !title.match(/^\s*$/)) { // Exclude empty titles
-            papers.push({ link, title });
-          }
+        const link = $(element).attr("href");
+        const title = $(element).text().replace(/\s+/g, " ").trim() || `Item ${index + 1}`;
+        if (link && link !== "javascript:void(0)") {
+          const fullLink = link.startsWith("http") ? link : "https://govdoc.lk" + (link.startsWith("/") ? "" : "/") + link;
+          allLinks.push({ link: fullLink, title });
         }
       });
 
-      console.log("Scraped papers:", papers);
-      if (papers.length < 1) {
-        await reply("*No downloadable past papers found on the main page. Check logs for details.*");
+      // Categorize links with improved logic
+      allLinks.forEach(paper => {
+        const titleLower = paper.title.toLowerCase();
+        const linkLower = paper.link.toLowerCase();
+        if (linkLower.includes("past-papers") || titleLower.includes("past papers") || titleLower.includes("g.c.e")) {
+          categorizedPapers["Past Papers"].push(paper);
+        } else if (linkLower.includes("/syllabus/")) {
+          categorizedPapers["Syllabus"].push(paper);
+        } else if (linkLower.includes("/teacher-guides/")) {
+          categorizedPapers["Teacher Guides"].push(paper);
+        } else if (linkLower.includes("/text-books/")) {
+          categorizedPapers["Text Books"].push(paper);
+        } else if (!linkLower.includes("login") && !linkLower.includes("register") && !linkLower.endsWith("govdoc.lk/")) {
+          categorizedPapers["Others"].push(paper);
+        }
+      });
+
+      // Filter by query if provided
+      let filteredPapers = {};
+      if (q) {
+        const searchTerm = q.toLowerCase();
+        Object.keys(categorizedPapers).forEach(category => {
+          filteredPapers[category] = categorizedPapers[category].filter(paper =>
+            paper.title.toLowerCase().includes(searchTerm) || paper.link.toLowerCase().includes(searchTerm)
+          );
+        });
+      } else {
+        filteredPapers = categorizedPapers;
+      }
+
+      // Count total papers
+      const totalPapers = Object.values(filteredPapers).reduce((sum, papers) => sum + papers.length, 0);
+      if (totalPapers < 1) {
+        await reply(`*No papers found${q ? ` matching "${q}"` : ""}. Check logs for all links.*`);
+        console.log("All links found:", allLinks);
         return;
       }
 
-      // Filter papers if query is provided
-      let filteredPapers = papers;
-      if (q) {
-        const searchTerm = q.toLowerCase();
-        filteredPapers = papers.filter(paper => 
-          paper.title.toLowerCase().includes(searchTerm)
-        );
-        if (filteredPapers.length < 1) {
-          await reply(`*No papers found matching "${q}"*`);
-          return;
-        }
-      }
-
-      await reply(`📑 *Found ${filteredPapers.length} papers${q ? ` matching "${q}"` : ""}. Listing...*`);
+      await reply(`📑 *Found ${totalPapers} papers${q ? ` matching "${q}"` : ""}. Listing by category...*`);
 
       const config = {
         LOGO: "https://github.com/chathurahansaka1/help/blob/main/src/f52f8647-b0fd-4f66-9cfa-00087fc06f9b.jpg?raw=true",
         FOOTER: "> Powered by Frozen Queen Bot ❄️",
       };
 
-      const options = filteredPapers.map((paper, index) => ({
-        title: `${index + 1}`,
-        description: paper.title,
-        rowId: `${prefix}pp ${paper.link} ${paper.title}`,
-      }));
+      // Build sections for each category
+      const sections = [];
+      let globalIndex = 1;
+      Object.keys(filteredPapers).forEach(category => {
+        if (filteredPapers[category].length > 0) {
+          const options = filteredPapers[category].map((paper) => ({
+            title: `${globalIndex++}`,
+            description: paper.title,
+            rowId: `${prefix}pp ${paper.link} ${paper.title}`,
+          }));
+          sections.push({
+            title: `_${category}_`,
+            rows: options,
+          });
+        }
+      });
 
       const listMessage = {
-        title: "_[Past Papers from GovDoc]_",
-        rows: options,
-      };
-
-      const messageContent = {
         caption: "🎬 *Frozen Queen Pastpaper-DL* 🎬",
         image: { url: config.LOGO },
         footer: config.FOOTER,
         title: `Select a paper to download 📲${q ? ` (Search: ${q})` : ""}`,
         buttonText: "*🔢 Reply with number*",
-        sections: [listMessage],
+        sections,
       };
 
-      await robin.sendMessage(from, messageContent, { quoted: mek });
+      await robin.sendMessage(from, listMessage, { quoted: mek });
     } catch (error) {
       console.error("Error in pastpaper command:", error);
       return reply(`*ERROR !!* ${error.message || "Failed to fetch papers."}`);
@@ -139,12 +172,6 @@ cmd(
       });
 
       let finalUrl = downloadResponse.request.res.responseUrl;
-      console.log("Download response:", {
-        url: finalUrl,
-        headers: downloadResponse.headers,
-        size: downloadResponse.data.length,
-      });
-
       let paperBuffer = Buffer.from(downloadResponse.data);
       let contentType = downloadResponse.headers["content-type"] || "application/pdf";
 
@@ -152,15 +179,13 @@ cmd(
         const html = paperBuffer.toString("utf8");
         const $html = cheerio.load(html);
 
-        let fileLink = $html("a[href*='.pdf']").attr("href") || 
-                       $html("meta[http-equiv='refresh']").attr("content")?.match(/url=(.+)/)?.[1] || 
-                       $html("a[href*='download']").attr("href") || 
-                       $html("link[href*='.pdf']").attr("href") || 
+        let fileLink = $html("a[href*='.pdf']").attr("href") ||
+                       $html("meta[http-equiv='refresh']").attr("content")?.match(/url=(.+)/)?.[1] ||
+                       $html("a[href*='download']").attr("href") ||
                        $html("script").text().match(/location\.href\s*=\s*["'](.*\.pdf)["']/i)?.[1];
 
         if (!fileLink) {
-          console.log("Full HTML content:", html);
-          await reply(`*ERROR !!* No PDF link found. Full HTML logged. Preview: ${html.slice(0, 200)}`);
+          await reply(`*ERROR !!* No PDF link found. Preview: ${html.slice(0, 200)}`);
           return;
         }
 
@@ -180,12 +205,6 @@ cmd(
         finalUrl = pdfResponse.request.res.responseUrl;
         paperBuffer = Buffer.from(pdfResponse.data);
         contentType = pdfResponse.headers["content-type"] || "application/pdf";
-
-        console.log("PDF response:", {
-          url: finalUrl,
-          headers: pdfResponse.headers,
-          size: paperBuffer.length,
-        });
       }
 
       if (!contentType.includes("pdf")) {
