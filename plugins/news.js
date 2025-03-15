@@ -4,7 +4,7 @@ const axios = require("axios"); // Install axios using: npm install axios
 // Global variables to manage auto-news
 let newsInterval = null;
 let autoNewsGroupId = null;
-let lastSentNewsTitle = null; // Store the title of the last sent news
+let lastSentNewsTitle = null;
 
 // Hiru News API endpoint
 const hiruNewsApi = "https://suhas-bro-api.vercel.app/news/hiru";
@@ -14,7 +14,7 @@ cmd(
     pattern: "autonews",
     alias: ["autohirunews"],
     react: "📰",
-    desc: "Enable or disable automatic Hiru news updates",
+    desc: "Enable or disable automatic Hiru news updates with FrozenQueen",
     category: "utility",
     filename: __filename,
   },
@@ -48,15 +48,15 @@ cmd(
     }
   ) => {
     try {
-      const action = args[0]?.toLowerCase(); // Get the action (on/off)
+      const action = args[0]?.toLowerCase();
 
       if (action === "on") {
         if (newsInterval) {
-          return reply("*❌ Auto news is already enabled!*");
+          return reply("*❌ FrozenQueen Error:* Auto news is already enabled!");
         }
 
         if (!isGroup) {
-          return reply("*❌ This command can only be used in a group!*");
+          return reply("*❌ FrozenQueen Error:* This command can only be used in a group!");
         }
 
         autoNewsGroupId = from;
@@ -66,32 +66,36 @@ cmd(
         const initialNews = await fetchNews(hiruNewsApi);
         if (initialNews) {
           await sendNews(robin, autoNewsGroupId, initialNews, "HIRU", savedMek);
-          lastSentNewsTitle = initialNews.title; // Store the title of the sent news
+          lastSentNewsTitle = initialNews.title;
         } else {
-          reply("*❌ Failed to fetch initial Hiru news!*");
+          reply("*❄️ FrozenQueen Warning:* Failed to fetch initial Hiru news. API may be down. Continuing with updates...");
         }
 
         // Start checking for new updates every 5 minutes
         newsInterval = setInterval(async () => {
           try {
             const news = await fetchNews(hiruNewsApi);
-            if (news && news.title !== lastSentNewsTitle) { // Check if it's a new news item
-              await sendNews(robin, autoNewsGroupId, news, "HIRU", savedMek);
-              lastSentNewsTitle = news.title; // Update the last sent news title
+            if (news) {
+              if (news.title !== lastSentNewsTitle) { // Check if it's new
+                await sendNews(robin, autoNewsGroupId, news, "HIRU", savedMek);
+                lastSentNewsTitle = news.title;
+              }
+            } else {
+              console.log("No new news or API issue detected.");
             }
           } catch (e) {
-            console.error("Auto-news check error:", e);
+            console.error("FrozenQueen Auto-news check error:", e);
           }
         }, 300000); // 5 minutes (300000 ms)
 
         return reply(
-          "*✅ Auto news enabled for Hiru!*\n" +
-          "- Latest news sent immediately.\n" +
-          "- New updates will be checked every 5 minutes and sent to this group."
+          "*✅ FrozenQueen Auto News Enabled!* ❄️\n" +
+          "- Latest Hiru news sent (if available).\n" +
+          "- Checking for updates every 5 minutes."
         );
       } else if (action === "off") {
         if (!newsInterval) {
-          return reply("*❌ Auto news is not enabled!*");
+          return reply("*❌ FrozenQueen Error:* Auto news is not enabled!");
         }
 
         clearInterval(newsInterval);
@@ -99,13 +103,13 @@ cmd(
         autoNewsGroupId = null;
         lastSentNewsTitle = null;
 
-        return reply("*✅ Auto news disabled!*");
+        return reply("*✅ FrozenQueen Auto News Disabled!* ❄️");
       } else {
-        return reply("*❌ Invalid action! Use `.autonews on` or `.autonews off`.*");
+        return reply("*❌ FrozenQueen Error:* Invalid action! Use `.autonews on` or `.autonews off`.");
       }
     } catch (e) {
-      console.error(e);
-      reply(`*❌ Error:* ${e.message || "Something went wrong. Please try again later."}`);
+      console.error("FrozenQueen Auto-news error:", e);
+      reply(`*❌ FrozenQueen Error:* ${e.message || "Something went wrong. Please try again later."}`);
     }
   }
 );
@@ -116,14 +120,14 @@ async function fetchNews(apiUrl) {
     const response = await axios.get(apiUrl, { timeout: 10000 }); // 10 seconds timeout
 
     if (!response.data || !response.data.status || !response.data.result) {
-      console.log("No news found or invalid response format.");
+      console.log("FrozenQueen: No news found or invalid response format.");
       return null;
     }
 
     return response.data.result;
   } catch (e) {
-    console.error("Failed to fetch news:", e);
-    return null;
+    console.error("FrozenQueen: Failed to fetch news:", e.response ? e.response.status : e.message);
+    return null; // Return null instead of throwing error to handle gracefully
   }
 }
 
@@ -131,7 +135,7 @@ async function fetchNews(apiUrl) {
 async function sendNews(client, groupId, news, source, replyTo) {
   try {
     if (!groupId) {
-      console.error("No group ID available for sending news");
+      console.error("FrozenQueen: No group ID available for sending news");
       return;
     }
 
@@ -140,20 +144,20 @@ async function sendNews(client, groupId, news, source, replyTo) {
       {
         image: { url: news.img },
         caption: `
-*📰 ${news.title} (${source})*
+*📰 ${news.title} (${source})* ❄️
 
 📅 *Date:* ${news.date}
 📝 *Description:* ${news.desc}
 
 🔗 *Read more:* ${news.link}
 
-*❄️ Frozen Queen Auto News Generated ❄️*
+*❄️ FrozenQueen Auto News Generated ❄️*
         `,
       },
       { quoted: replyTo }
     );
-    console.log(`Successfully sent ${source} news to group`);
+    console.log(`FrozenQueen: Successfully sent ${source} news to group`);
   } catch (e) {
-    console.error("Failed to send news:", e);
+    console.error("FrozenQueen: Failed to send news:", e);
   }
 }
