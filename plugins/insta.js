@@ -48,7 +48,7 @@ cmd(
       await robin.sendMessage(
         from,
         { 
-          image: { url: "https://github.com/chathurahansaka1/help/blob/main/src/f52f8647-b0fd-4f66-9cfa-00087fc06f9b.jpg?raw=true" },
+          image: { url: "https://raw.githubusercontent.com/chathurahansaka1/help/5dab834cf2d58e124e0c7b19fd1994ccf238d7e6/src/fcb7f6ab-7173-4afd-a5ea-03e6eca26df6.jpg" },
           caption: "❄️ *Processing Instagram Video Download...*\n*Frozen Queen Insta Downloader*"
         },
         { quoted: mek }
