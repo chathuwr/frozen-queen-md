@@ -92,7 +92,7 @@ ${menu.search}
         from,
         {
           image: {
-            url: "https://telegra.ph/file/c1737376abe4978d2c556.jpg",
+            url: "https://raw.githubusercontent.com/chathurahansaka1/help/ec4f09d2db8155a1a8fe01dd69043172922e82ac/src/239a768b-9285-451a-b812-2575a322aa5b.jpg",
           },
           caption: madeMenu,
         },
