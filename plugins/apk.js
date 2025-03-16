@@ -18,7 +18,7 @@ cmd(
       await robin.sendMessage(
         from,
         {
-          image: { url: "https://github.com/chathurahansaka1/help/blob/main/src/f52f8647-b0fd-4f66-9cfa-00087fc06f9b.jpg?raw=true" },
+          image: { url: "https://raw.githubusercontent.com/chathurahansaka1/help/417028e770fe9db2e73c40d84d3f09d931885197/src/ef913842-3757-4d16-a2ab-c798802f935a.jpg" },
           caption: "❄️*Frozen Queen Processing Your APK...*❄️"
         },
         { quoted: mek }
