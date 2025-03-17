@@ -34,7 +34,7 @@
     "ytdl-core": "^4.11.5",
      "@distube/ytdl-core": "^4.16.4",
      "@mtatko/tiktok-scraper": "^2.8.0",
-     "sharp": "^0.33.5 ",
+   
        "puppeteer": "^24.4.0 "
   }
 }
