@@ -56,21 +56,13 @@ cmd(
         console.log("Reaction error:", reactionError);
       }
 
-      // Hugging Face Stable Diffusion API configuration
-      const API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1";
-      const API_KEY = "YOUR_HUGGING_FACE_API_KEY_HERE"; // Replace with your actual API key
+      // Custom API configuration using the provided imger.php endpoint
+      const API_URL = `https://dev-pycodz-blackbox.pantheonsite.io/DEvZ44d/imger.php?img=${encodeURIComponent(prompt)}`;
 
       // Fetch image from API
       const response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          inputs: prompt,
-          parameters: { width: 512, height: 512 }, // Adjust size as needed
-        }),
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
       });
 
       // Check if the response is OK
@@ -85,9 +77,7 @@ cmd(
         throw new Error(`API request failed with status: ${response.status}`);
       }
 
-      // Get the image as a blob and create a URL
-      const imageBlob = await response.blob();
-      const imageUrl = URL.createObjectURL(imageBlob);
+      const imageUrl = API_URL; // Assuming the API returns the image directly at this URL
 
       // Try to change reaction to success
       try {
