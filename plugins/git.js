@@ -1,20 +1,21 @@
 // git-plugin.js
 const { cmd } = require('../command');
-const fetch = require('node-fetch');
+const fetch = require('node-fetch'); // Use node-fetch@2 for CommonJS
 const fs = require('fs');
 
+// Command to show GitHub user info only
 cmd({
   pattern: "git",
   react: "💻",
-  desc: "Download a GitHub user's repository as a ZIP",
+  desc: "Get GitHub user information",
   category: "tools",
   filename: __filename,
 },
 async (robin, mek, m, { from, quoted, q, reply }) => {
   try {
-    if (!q) return reply("Example: ```.git octocat my-repo``` (username and optional repo name)");
+    if (!q) return reply("Example: ```.git octocat``` (username)");
 
-    const [username, repoName] = q.trim().split(" ");
+    const username = q.trim();
     if (!username) return reply("❌ Please provide a GitHub username.");
 
     // Fetch user info
@@ -24,32 +25,7 @@ async (robin, mek, m, { from, quoted, q, reply }) => {
     if (!userResponse.ok) return reply(`❌ Error: User not found (${userResponse.status})`);
     const user = await userResponse.json();
 
-    // If no repo specified, get the first public repo
-    if (!repoName) {
-      const reposResponse = await fetch(`https://api.github.com/users/${username}/repos`, {
-        headers: { "User-Agent": "Frozen-Queen-Bot" },
-      });
-      if (!reposResponse.ok) return reply(`❌ Error: Could not fetch repos (${reposResponse.status})`);
-      const repos = await reposResponse.json();
-
-      if (repos.length === 0) return reply("❌ This user has no public repositories.");
-      const defaultRepo = repos[0].name; // Use the first repo
-      return await downloadAndSendRepo(username, defaultRepo, robin, from, mek, reply, user);
-    }
-
-    // If repo is specified, download it directly
-    return await downloadAndSendRepo(username, repoName, robin, from, mek, reply, user);
-
-  } catch (e) {
-    console.error("Error in git command:", e);
-    reply(`❌ Error: ${e.message}`);
-  }
-});
-
-// Helper function to download and send repo as ZIP
-async function downloadAndSendRepo(username, repoName, robin, from, mek, reply, user) {
-  try {
-    // Send user info first
+    // Send user info
     const userInfo = `
 *❄️ GitHub User Info ❄️*
 👤 *Username:* ${user.login}
@@ -67,6 +43,28 @@ async function downloadAndSendRepo(username, repoName, robin, from, mek, reply, 
       caption: userInfo
     }, { quoted: mek });
 
+    return reply("*Thanks for using ❄️ Frozen Queen ❄️*");
+  } catch (e) {
+    console.error("Error in git command:", e);
+    reply(`❌ Error: ${e.message}`);
+  }
+});
+
+// Command to download GitHub repo as ZIP
+cmd({
+  pattern: "gitclone",
+  react: "📦",
+  desc: "Download a GitHub repository as a ZIP",
+  category: "tools",
+  filename: __filename,
+},
+async (robin, mek, m, { from, quoted, q, reply }) => {
+  try {
+    if (!q) return reply("Example: ```.gitclone octocat hello-world``` (username repo-name)");
+
+    const [username, repoName] = q.trim().split(" ");
+    if (!username || !repoName) return reply("❌ Please provide both a GitHub username and repository name.");
+
     // Download repo ZIP
     const zipUrl = `https://github.com/${username}/${repoName}/archive/refs/heads/main.zip`;
     const zipResponse = await fetch(zipUrl);
@@ -75,7 +73,7 @@ async function downloadAndSendRepo(username, repoName, robin, from, mek, reply, 
 
     // Save the ZIP temporarily
     const zipPath = `./${repoName}-main.zip`;
-    const buffer = Buffer.from(await zipResponse.arrayBuffer());
+    const buffer = Buffer.from(await zipResponse.buffer()); // node-fetch@2 uses buffer()
     fs.writeFileSync(zipPath, buffer);
 
     // Send the ZIP file
@@ -91,7 +89,7 @@ async function downloadAndSendRepo(username, repoName, robin, from, mek, reply, 
 
     return reply("*Thanks for using ❄️ Frozen Queen ❄️*");
   } catch (e) {
-    console.error("Error downloading repo:", e);
+    console.error("Error in gitclone command:", e);
     reply(`❌ Error: ${e.message}`);
   }
-}
+});
