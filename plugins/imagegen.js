@@ -56,18 +56,25 @@ cmd(
         console.log("Reaction error:", reactionError);
       }
 
-      // API configuration using Stable Diffusion or any other image generation API
-      const API_URL = `https://stabledifffusion.com/imagen/${encodeURIComponent(prompt)}?width=1024&height=1024`;
+      // Hugging Face Stable Diffusion API configuration
+      const API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1";
+      const API_KEY = "YOUR_HUGGING_FACE_API_KEY_HERE"; // Replace with your actual API key
 
       // Fetch image from API
       const response = await fetch(API_URL, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputs: prompt,
+          parameters: { width: 512, height: 512 }, // Adjust size as needed
+        }),
       });
 
       // Check if the response is OK
       if (!response.ok) {
-        // Try to react with error emoji
         try {
           if (processingMsg && processingMsg.key) {
             await robin.sendMessage(from, { react: { text: "❌", key: processingMsg.key } });
@@ -78,9 +85,11 @@ cmd(
         throw new Error(`API request failed with status: ${response.status}`);
       }
 
-      const imageUrl = API_URL; // Directly use the URL as image source
+      // Get the image as a blob and create a URL
+      const imageBlob = await response.blob();
+      const imageUrl = URL.createObjectURL(imageBlob);
 
-      // Try to change reaction to success on the processing message
+      // Try to change reaction to success
       try {
         if (processingMsg && processingMsg.key) {
           await robin.sendMessage(from, { react: { text: "✅", key: processingMsg.key } });
@@ -109,7 +118,7 @@ cmd(
       }
 
     } catch (e) {
-      console.error("Error in image generation:", e); // Log full error for debugging
+      console.error("Error in image generation:", e);
       return reply(`❌ Error: ${e.message || "Something went wrong. Please try again later."}`);
     }
   }
