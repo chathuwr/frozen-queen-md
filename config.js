@@ -56,10 +56,15 @@ function getBotSpeed() {
 }
 
 module.exports = {
-  SESSION_ID: process.env.SESSION_ID || "MYRwkJoI#lkQ4RPKEG6LkP20VjHOmiafIEms_D_ryhJkIZdh9jN0"
+  SESSION_ID: process.env.SESSION_ID || "MYRwkJoI#lkQ4RPKEG6LkP20VjHOmiafIEms_D_ryhJkIZdh9jN0",
   OWNER_NUM: process.env.OWNER_NUM || "94702560019",
   PREFIX: process.env.PREFIX || ".",
-  ROYAL_NAME: process.env.ROYAL_NAME || "Frozen Queen", // Add ROYAL_NAME to environment variables
+  ROYAL_NAME: process.env.ROYAL_NAME || "Frozen Queen",
+  AUTO_READ_STATUS: process.env.AUTO_READ_STATUS || "true",
+  MODE: process.env.MODE || "public",
+  AUTO_VOICE: process.env.AUTO_VOICE || "true",
+  AUTO_STICKER: process.env.AUTO_STICKER || "true",
+  AUTO_REPLY: process.env.AUTO_REPLY || "true",
   ALIVE_IMG: process.env.ALIVE_IMG || "https://raw.githubusercontent.com/chathurahansaka1/help/main/src/cdbe3771-c89d-4ee9-a7d6-254d0c321c8a.jpg",
   ALIVE_MSG: `
 ╭────༺❄️༻────╮
@@ -70,20 +75,20 @@ module.exports = {
      ✧･ﾟ: *✧･ﾟ:* BOT STATUS *:･ﾟ✧*:･ﾟ✧
 ╚══════ஓ๑❄️๑ஓ══════╝
 ┊ ༄ᶦᶰᶠᵒ❆ 👑 Royal Name: ${process.env.ROYAL_NAME || "Frozen Queen"}
-┊ ༄ᶦᶰᶠᵒ❆ 📞 Royal Contact: +${process.env.OWNER_NUM || "94713670127"}
+┊ ༄ᶦᶰᶠᵒ❆ 📞 Royal Contact: +${process.env.OWNER_NUM || "94702560019"}
   ┈┈┈┈┈┈༻❄️༺┈┈┈┈┈┈
 ╔══•ೋ❅ SYSTEM INFO ❅ೋ•══╗
 ┊ ༄ᶦᶰᶠᵒ❆ 🖥️ Platform: ${os.platform()}
-┊ ༄ᶦᶰᶠᵒ❆ 💾 RAM: ${getRAMUsage()}
+┊ ༄ᶦᶰᶠᵒ❆ 💾 RAM: {RAM_USAGE}
 ┊ ༄ᶦᶰᶠᵒ❆ ⚡ CPU: ${(os.loadavg()[0] * 100 / os.cpus().length).toFixed(2)}%
 ╚══════༺❅❄️❅༻══════╝
 ╔══•ೋ❅ TIME INFO ❅ೋ•══╗
-┊ ༄ᶦᶰᶠᵒ❆ ⏰ Time: ${getSriLankanTime()}
-┊ ༄ᶦᶰᶠᵒ❆ 📅 Date: ${getSriLankanDate()}
+┊ ༄ᶦᶰᶠᵒ❆ ⏰ Time: {SRI_LANKAN_TIME}
+┊ ༄ᶦᶰᶠᵒ❆ 📅 Date: {SRI_LANKAN_DATE}
 ╚══════༺❅❄️❅༻══════╝
 ╔══•ೋ❅ BOT STATS ❅ೋ•══╗
-┊ ༄ᶦᶰᶠᵒ❆ ⏳ Runtime: ${getUptime()}
-┊ ༄ᶦᶰᶠᵒ❆ 🚀 Speed: ${getBotSpeed()}
+┊ ༄ᶦᶰᶠᵒ❆ ⏳ Runtime: {UPTIME}
+┊ ༄ᶦᶰᶠᵒ❆ 🚀 Speed: {BOT_SPEED}
 ┊ ༄ᶦᶰᶠᵒ❆ ✅ Status: Active
 ╚══════༺❅❄️❅༻══════╝
 ╔══•ೋ❅ COMMANDS ❅ೋ•══╗
@@ -96,5 +101,10 @@ module.exports = {
   ┈┈┈┈┈┈༻❄️༺┈┈┈┈┈┈
      ✧･ﾟ: *✧･ﾟ:* THE COLD NEVER BOTHERED ME ANYWAY *:･ﾟ✧*:･ﾟ✧
 `,
-  REACTION: "❄️", // Add a reaction emoji
+  REACTION: "❄️",
+  getSriLankanDate,
+  getSriLankanTime,
+  getUptime,
+  getRAMUsage,
+  getBotSpeed,
 };
