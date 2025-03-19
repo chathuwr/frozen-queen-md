@@ -54,9 +54,6 @@ const port = process.env.PORT || 8000;
 //=============================================
 
 async function connectToWA() {
-
-
-
   console.log("Connecting ❄️Frozen Queen❄️");
   const { state, saveCreds } = await useMultiFileAuthState(
     __dirname + "/auth_info_baileys/"
@@ -76,7 +73,7 @@ async function connectToWA() {
     const { connection, lastDisconnect } = update;
     if (connection === "close") {
       if (
-        lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut
+        lastDisconnect.error?.output.statusCode !== DisconnectReason.loggedOut
       ) {
         connectToWA();
       }
@@ -249,6 +246,28 @@ async function connectToWA() {
     if (!isOwner && config.MODE === "private") return;
     if (!isOwner && isGroup && config.MODE === "inbox") return;
     if (!isOwner && !isGroup && config.MODE === "groups") return;
+
+    // Handle .alive command
+    if (isCmd && command === "alive") {
+      const ramUsage = config.getRAMUsage();
+      const sriLankanTime = config.getSriLankanTime();
+      const sriLankanDate = config.getSriLankanDate();
+      const uptime = config.getUptime();
+      const botSpeed = config.getBotSpeed();
+
+      const aliveMessage = config.ALIVE_MSG
+        .replace("{RAM_USAGE}", ramUsage)
+        .replace("{SRI_LANKAN_TIME}", sriLankanTime)
+        .replace("{SRI_LANKAN_DATE}", sriLankanDate)
+        .replace("{UPTIME}", uptime)
+        .replace("{BOT_SPEED}", botSpeed);
+
+      robin.sendMessage(from, {
+        image: { url: config.ALIVE_IMG },
+        caption: aliveMessage,
+      }, { quoted: mek });
+      return;
+    }
 
     const events = require("./command");
     const cmdName = isCmd
