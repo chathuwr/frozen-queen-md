@@ -14,7 +14,7 @@ function getSriLankanDate() {
     month: "2-digit",
     day: "2-digit",
   };
-  return now.toLocaleDateString("en-CA", { timeZone: "Asia/Colombo" }); // en-CA gives YYYY-MM-DD format
+  return now.toLocaleDateString("en-CA", { timeZone: "Asia/Colombo" });
 }
 
 // Function to get Sri Lankan time in HH:MM:SS format
@@ -25,7 +25,7 @@ function getSriLankanTime() {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
-    hour12: false, // Use 24-hour format
+    hour12: false,
   };
   return now.toLocaleTimeString("en-US", options);
 }
@@ -49,10 +49,10 @@ function getRAMUsage() {
 
 // Function to calculate bot speed in milliseconds
 function getBotSpeed() {
-  const minSpeed = 100; // Minimum speed in ms
-  const maxSpeed = 500; // Maximum speed in ms
+  const minSpeed = 100;
+  const maxSpeed = 500;
   const speed = Math.floor(Math.random() * (maxSpeed - minSpeed + 1)) + minSpeed;
-  return `${speed}ms`; // Return speed in milliseconds
+  return `${speed}ms`;
 }
 
 module.exports = {
@@ -91,7 +91,7 @@ module.exports = {
 ┊ ༄ᶦᶰᶠᵒ❆ 🚀 Speed: {BOT_SPEED}
 ┊ ༄ᶦᶰᶠᵒ❆ ✅ Status: Active
 ╚══════༺❅❄️❅༻══════╝
-╔══•ೋ❅ COMMANDS ❅ೋ•══╗
+╔══•ೋ❅ COMMANDS ❅ோ•══╗
 ┊ ༄ᶦᶰᶠᵒ❆ ❄️ .alive ➢ Check bot status
 ┊ ༄ᶦᶰᶠᵒ❆ ❄️ .help ➢ View all commands
 ┊ ༄ᶦᶰᶠᵒ❆ ❄️ .sticker ➢ Create ice stickers
