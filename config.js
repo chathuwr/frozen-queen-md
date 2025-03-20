@@ -63,6 +63,7 @@ module.exports = {
   AUTO_READ_STATUS: process.env.AUTO_READ_STATUS || "true",
   MODE: process.env.MODE || "public",
   AUTO_VOICE: process.env.AUTO_VOICE || "true",
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || "AIzaSyBiSb7bbTIFpXsTntRAdyHYdqwjG_hVYy4",
   AUTO_STICKER: process.env.AUTO_STICKER || "true",
   AUTO_REPLY: process.env.AUTO_REPLY || "true",
   ALIVE_IMG: process.env.ALIVE_IMG || "https://raw.githubusercontent.com/chathurahansaka1/help/main/src/cdbe3771-c89d-4ee9-a7d6-254d0c321c8a.jpg",
