@@ -4,6 +4,20 @@ const config = require('../config');
 // Store pending menu requests
 const pendingMenus = new Map();
 
+// Emoji reactions for each command category
+const categoryReactions = {
+  main: "👑",
+  download: "📥",
+  group: "👥",
+  owner: "🔒",
+  convert: "🔄",
+  search: "🔍",
+  ai: "🤖",
+  fun: "🎮",
+  sticker: "🎭",
+  tools: "🛠️"
+};
+
 cmd(
   {
     pattern: "menu",
@@ -98,16 +112,16 @@ cmd(
 ┊ ༄ᶦᶰᶠᵒ❆ 👑 Hello ${pushname || "Ice Wielder"}
 
 ╔══•ೋ❅ COMMAND CATEGORIES ❅ೋ•══╗
-┊ ༄ᶦᶰᶠᵒ❆ ❄️ 1 ➢ Main Commands
-┊ ༄ᶦᶰᶠᵒ❆ ❄️ 2 ➢ Download Commands
-┊ ༄ᶦᶰᶠᵒ❆ ❄️ 3 ➢ Group Commands
-┊ ༄ᶦᶰᶠᵒ❆ ❄️ 4 ➢ Owner Commands
-┊ ༄ᶦᶰᶠᵒ❆ ❄️ 5 ➢ Convert Commands
-┊ ༄ᶦᶰᶠᵒ❆ ❄️ 6 ➢ Search Commands
-┊ ༄ᶦᶰᶠᵒ❆ ❄️ 7 ➢ AI Commands
-┊ ༄ᶦᶰᶠᵒ❆ ❄️ 8 ➢ Fun Commands
-┊ ༄ᶦᶰᶠᵒ❆ ❄️ 9 ➢ Sticker Commands
-┊ ༄ᶦᶰᶠᵒ❆ ❄️ 10 ➢ Tools Commands
+┊ ༄ᶦᶰᶠᵒ❆ ${categoryReactions.main} 1 ➢ Main Commands
+┊ ༄ᶦᶰᶠᵒ❆ ${categoryReactions.download} 2 ➢ Download Commands
+┊ ༄ᶦᶰᶠᵒ❆ ${categoryReactions.group} 3 ➢ Group Commands
+┊ ༄ᶦᶰᶠᵒ❆ ${categoryReactions.owner} 4 ➢ Owner Commands
+┊ ༄ᶦᶰᶠᵒ❆ ${categoryReactions.convert} 5 ➢ Convert Commands
+┊ ༄ᶦᶰᶠᵒ❆ ${categoryReactions.search} 6 ➢ Search Commands
+┊ ༄ᶦᶰᶠᵒ❆ ${categoryReactions.ai} 7 ➢ AI Commands
+┊ ༄ᶦᶰᶠᵒ❆ ${categoryReactions.fun} 8 ➢ Fun Commands
+┊ ༄ᶦᶰᶠᵒ❆ ${categoryReactions.sticker} 9 ➢ Sticker Commands
+┊ ༄ᶦᶰᶠᵒ❆ ${categoryReactions.tools} 10 ➢ Tools Commands
 ╚══════༺❅❄️❅༻══════╝
 
   ┈┈┈┈┈┈༻❄️༺┈┈┈┈┈┈
@@ -115,7 +129,10 @@ cmd(
 
 Reply to this message with a number (1-10) to view commands`;
 
-      // Send the main menu
+      // Create a forwarded message appearance
+      const forwardingScore = Math.floor(Math.random() * 5) + 1; // Random forwarding score between 1-5
+      
+      // Send the main menu with forwarded attribute
       const sentMsg = await robin.sendMessage(
         from,
         {
@@ -123,9 +140,22 @@ Reply to this message with a number (1-10) to view commands`;
             url: "https://raw.githubusercontent.com/chathurahansaka1/help/ec4f09d2db8155a1a8fe01dd69043172922e82ac/src/239a768b-9285-451a-b812-2575a322aa5b.jpg",
           },
           caption: mainMenu,
+          contextInfo: {
+            isForwarded: true,
+            forwardingScore: forwardingScore,
+            forwardedNewsletterMessageInfo: {
+              newsletterJid: "120363025046789867@newsletter", // Replace with your channel JID
+              newsletterName: "FROZEN-QUEEN UPDATES", // Replace with your channel name
+              newsletterLink: "https://whatsapp.com/channel/120363025046789867", // Replace with your channel link
+              serverMessageId: Date.now().toString(),
+            }
+          }
         },
         { quoted: mek }
       );
+      
+      // React to the sent message
+      await robin.sendMessage(from, { react: { text: "❄️", key: sentMsg.key } });
       
       // Get message ID to track replies
       const messageID = sentMsg.key.id;
@@ -152,11 +182,12 @@ Reply to this message with a number (1-10) to view commands`;
         
         const category = categories[categoryIndex];
         const title = categoryTitles[categoryIndex];
+        const reaction = categoryReactions[category];
         
-        // Format commands with prefixes and descriptions
+        // Format commands with prefixes and reactions
         let commandList = '';
         for (const cmd of menu[category]) {
-          commandList += `┊ ༄ᶦᶰᶠᵒ❆ ❄️ .${cmd}\n`;
+          commandList += `┊ ༄ᶦᶰᶠᵒ❆ ${reaction} .${cmd}\n`;
         }
         
         return `╭────༺❄️༻────╮
@@ -203,11 +234,15 @@ Type .menu to return to main menu`;
               
               // Check if reply is a valid menu choice
               if (userChoice >= 1 && userChoice <= 10) {
+                // React to user's message with the category's emoji
+                const category = Object.keys(categoryReactions)[userChoice - 1];
+                await robin.sendMessage(menuData.from, { react: { text: categoryReactions[category], key: mekInfo.key } });
+                
                 // Generate the category menu
                 const categoryMenu = generateCategoryMenu(userChoice, menuData.menu);
                 
                 if (categoryMenu) {
-                  // Send the selected menu to the user
+                  // Send the selected menu to the user with forwarded appearance
                   await robin.sendMessage(
                     menuData.from,
                     {
@@ -215,14 +250,22 @@ Type .menu to return to main menu`;
                         url: "https://raw.githubusercontent.com/chathurahansaka1/help/ec4f09d2db8155a1a8fe01dd69043172922e82ac/src/239a768b-9285-451a-b812-2575a322aa5b.jpg",
                       },
                       caption: categoryMenu,
+                      contextInfo: {
+                        isForwarded: true,
+                        forwardingScore: forwardingScore,
+                        forwardedNewsletterMessageInfo: {
+                          newsletterJid: "120363025046789867@newsletter", // Replace with your channel JID
+                          newsletterName: "FROZEN-QUEEN UPDATES", // Replace with your channel name
+                          newsletterLink: "https://whatsapp.com/channel/120363025046789867", // Replace with your channel link
+                          serverMessageId: Date.now().toString(),
+                        }
+                      }
                     },
                     { quoted: mekInfo }
                   );
                 }
               }
             }
-            
-            // Note: We don't remove the pendingMenu entry so multiple users can interact with it
           }
         } catch (err) {
           console.log("Error in message listener:", err);
