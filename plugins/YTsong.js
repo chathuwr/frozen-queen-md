@@ -1,114 +1,111 @@
-const { cmd, commands } = require("../command");
-const yts = require("yt-search");
-const { ytmp3 } = require("@vreden/youtube_scraper");
+const { cmd } = require("../command");
+const DY_SCRAP = require('@dark-yasiya/scrap');
+const dy_scrap = new DY_SCRAP();
+const pendingDownloads = new Map();
+
+const replaceYouTubeID = (url) => {
+  const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+};
 
 cmd(
   {
     pattern: "song",
-    react: "🎵",
-    desc: "Download Song",
-    category: "download",
-    filename: __filename,
+    desc: "Download Ytmp3",
+    use: ".song <Text or YT URL>",
   },
-  async (
-    robin,
-    mek,
-    m,
-    {
-      from,
-      quoted,
-      body,
-      isCmd,
-      command,
-      args,
-      q,
-      isGroup,
-      sender,
-      senderNumber,
-      botNumber2,
-      botNumber,
-      pushname,
-      isMe,
-      isOwner,
-      groupMetadata,
-      groupName,
-      participants,
-      groupAdmins,
-      isBotAdmins,
-      isAdmins,
-      reply,
-    }
-  ) => {
+  async (robin, mek, m, { from, quoted, q, reply }) => {
     try {
-      if (!q) return reply("Ex : . ```song  lelena.```  ❄️🪄");
+      if (!q) return await reply("❌ Query ekak ho URL ekak danna!");
 
-      // Search for the video
-      const search = await yts(q);
-      const data = search.videos[0];
-      const url = data.url;
+      let id = null;
+      if (q.startsWith("https://")) {
+        id = replaceYouTubeID(q);
+        if (!id) return await reply("❌ Invalid YouTube URL!");
+      }
 
-      // Song metadata description
-      let desc = `
-*❄️Frozen Queen SONG DOWNLOADER❄️*
+      if (!id) {
+        const searchResults = await dy_scrap.ytsearch(q);
+        if (!searchResults?.results?.length) return await reply("❌ Results nadda!");
+        id = searchResults.results[0].videoId;
+      }
 
-☃️ *title* : ${data.title}
-☃️ *description* : ${data.description}
-☃️ *time* : ${data.timestamp}
-☃️ *ago* : ${data.ago}
-☃️ *views* : ${data.views}
-☃️ *url* : ${data.url}
+      // Background download start karanawa
+      const downloadPromise = dy_scrap.ytmp3(`https://youtube.com/watch?v=${id}`);
 
-𝐌𝐚𝐝𝐞 𝐛𝐲 FROZEN QUEEN TEAM
-`;
+      // Metadata gannawa
+      const response = await downloadPromise;
+      if (!response?.status) return await reply("❌ Video fetch karanna ba!");
 
-      // Send metadata thumbnail message
-      await robin.sendMessage(
-        from,
-        { image: { url: data.thumbnail }, caption: desc },
-        { quoted: mek }
-      );
+      const { url, title, timestamp, image } = response.result.data;
 
-      // Download the audio using @vreden/youtube_scraper
-      const quality = "128"; // Default quality
-      const songData = await ytmp3(url, quality);
-
-      // Validate song duration (limit: 30 minutes)
-      let durationParts = data.timestamp.split(":").map(Number);
+      // Duration check (30 min limit)
+      let durationParts = timestamp.split(":").map(Number);
       let totalSeconds =
         durationParts.length === 3
           ? durationParts[0] * 3600 + durationParts[1] * 60 + durationParts[2]
           : durationParts[0] * 60 + durationParts[1];
+      if (totalSeconds > 1800) return await reply("⏱️ Audio limit eka 30 minutes!");
 
-      if (totalSeconds > 1800) {
-        return reply("⏱️ audio limit is 30 minitues");
-      }
+      // Metadata message
+      let info = `
+🎵 *Title:* ${title}
+⏳ *Duration:* ${timestamp}
+🔽 *Choice:*
+1️⃣ Audio
+2️⃣ Document
+3️⃣ both
+`;
+      const sentMsg = await robin.sendMessage(from, { image: { url: image }, caption: info }, { quoted: mek });
+      const messageID = sentMsg.key.id;
 
-      // Send audio file
-      await robin.sendMessage(
-        from,
-        {
-          audio: { url: songData.download.url },
-          mimetype: "audio/mpeg",
-        },
-        { quoted: mek }
-      );
+      // Pending download save karanawa
+      pendingDownloads.set(messageID, { downloadPromise, data: { title, url }, from, mek });
 
-      // Send as a document (optional)
-      await robin.sendMessage(
-        from,
-        {
-          document: { url: songData.download.url },
-          mimetype: "audio/mpeg",
-          fileName: `${data.title}.mp3`,
-          caption: "𝐌𝐚𝐝𝐞 𝐛𝐲 FROZEN QUEEN TEAM",
-        },
-        { quoted: mek }
-      );
+      // User choice eka gannawa
+      robin.ev.on("messages.upsert", async (messageUpdate) => {
+        const mekInfo = messageUpdate.messages[0];
+        if (!mekInfo.message) return;
 
-      return reply("*Thanks for using ❄️Frozen Queen❄️*");
+        const isReply = mekInfo.message.extendedTextMessage?.contextInfo?.stanzaId === messageID;
+        if (isReply && pendingDownloads.has(messageID)) {
+          const { downloadPromise, data, from, mek } = pendingDownloads.get(messageID);
+          const choice = (mekInfo.message.conversation || mekInfo.message.extendedTextMessage.text).trim();
+
+          if (["1", "2", "3"].includes(choice)) {
+            const processingMsg = await robin.sendMessage(from, { text: "⏳ Processing..." }, { quoted: mek });
+            const songData = await downloadPromise;
+            let videoUrl = songData.result.download.url;
+
+            if (choice === "1") {
+              await robin.sendMessage(from, { audio: { url: videoUrl }, mimetype: "audio/mpeg" }, { quoted: mek });
+              await robin.sendMessage(from, { text: "✅ Audio sent!", edit: processingMsg.key });
+            } else if (choice === "2") {
+              await robin.sendMessage(
+                from,
+                { document: { url: videoUrl }, mimetype: "audio/mpeg", fileName: `${data.title}.mp3` },
+                { quoted: mek }
+              );
+              await robin.sendMessage(from, { text: "✅ Document sent!", edit: processingMsg.key });
+            } else if (choice === "3") {
+              await robin.sendMessage(from, { audio: { url: videoUrl }, mimetype: "audio/mpeg" }, { quoted: mek });
+              await robin.sendMessage(
+                from,
+                { document: { url: videoUrl }, mimetype: "audio/mpeg", fileName: `${data.title}.mp3` },
+                { quoted: mek }
+              );
+              await robin.sendMessage(from, { text: "✅ Deka sent!", edit: processingMsg.key });
+            }
+
+            pendingDownloads.delete(messageID);
+          } else {
+            await robin.sendMessage(from, { text: "❌ 1, 2, ho 3 danna!" }, { quoted: mek });
+          }
+        }
+      });
     } catch (e) {
-      console.log(e);
-      reply(`❌ Error: ${e.message}`);
+      await reply(`❌ Error: ${e.message || "Something went wrong!"}`);
     }
   }
 );
