@@ -57,11 +57,11 @@ function getBotSpeed() {
 
 module.exports = {
   SESSION_ID: process.env.SESSION_ID || "MYRwkJoI#lkQ4RPKEG6LkP20VjHOmiafIEms_D_ryhJkIZdh9jN0",
-  OWNER_NUM: process.env.OWNER_NUM || "94702560019",
+  OWNER_NUM: process.env.OWNER_NUM || "94713670127",
   PREFIX: process.env.PREFIX || ".",
   ROYAL_NAME: process.env.ROYAL_NAME || "Frozen Queen",
   AUTO_READ_STATUS: process.env.AUTO_READ_STATUS || "true",
-  GEMINI_API_KEY: process.env.GEMINI_API_KEY || "AIzaSyBiSb7bbTIFpXsTntRAdyHYdqwjG_hVYy4",
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || "tQ5WlbKR#fqJuGFSO5ckE5-lXsd68qG1W6r_CeKvZF5tYFoXDI-I",
   MODE: process.env.MODE || "public",
   AUTO_VOICE: process.env.AUTO_VOICE || "true",
   AUTO_STICKER: process.env.AUTO_STICKER || "true",
@@ -76,7 +76,7 @@ module.exports = {
      ✧･ﾟ: *✧･ﾟ:* BOT STATUS *:･ﾟ✧*:･ﾟ✧
 ╚══════ஓ๑❄️๑ஓ══════╝
 ┊ ༄ᶦᶰᶠᵒ❆ 👑 Royal Name: ${process.env.ROYAL_NAME || "Frozen Queen"}
-┊ ༄ᶦᶰᶠᵒ❆ 📞 Royal Contact: +${process.env.OWNER_NUM || "94702560019"}
+┊ ༄ᶦᶰᶠᵒ❆ 📞 Royal Contact: +${process.env.OWNER_NUM || "94713670127"}
   ┈┈┈┈┈┈༻❄️༺┈┈┈┈┈┈
 ╔══•ೋ❅ SYSTEM INFO ❅ೋ•══╗
 ┊ ༄ᶦᶰᶠᵒ❆ 🖥️ Platform: ${os.platform()}
