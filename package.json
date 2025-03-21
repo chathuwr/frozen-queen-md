@@ -11,6 +11,7 @@
   "dependencies": {
        "@distube/ytdl-core": "^4.16.4",
     "@mtatko/tiktok-scraper": "^2.8.0",
+    "@dark-yasiya/scrap": "^1.0.1",
     "@vreden/youtube_scraper": "^1.2.6",
     "@whiskeysockets/baileys": "^6.7.16",
     "api-dylux": "^1.8.5",
