@@ -56,12 +56,12 @@ function getBotSpeed() {
 }
 
 module.exports = {
-  SESSION_ID: process.env.SESSION_ID || "MYRwkJoI#lkQ4RPKEG6LkP20VjHOmiafIEms_D_ryhJkIZdh9jN0",
+  SESSION_ID: process.env.SESSION_ID || "MtQ5WlbKR#fqJuGFSO5ckE5-lXsd68qG1W6r_CeKvZF5tYFoXDI-I",
   OWNER_NUM: process.env.OWNER_NUM || "94713670127",
   PREFIX: process.env.PREFIX || ".",
   ROYAL_NAME: process.env.ROYAL_NAME || "Frozen Queen",
   AUTO_READ_STATUS: process.env.AUTO_READ_STATUS || "true",
-  GEMINI_API_KEY: process.env.GEMINI_API_KEY || "tQ5WlbKR#fqJuGFSO5ckE5-lXsd68qG1W6r_CeKvZF5tYFoXDI-I",
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || "MYRwkJoI#lkQ4RPKEG6LkP20VjHOmiafIEms_D_ryhJkIZdh9jN0",
   MODE: process.env.MODE || "public",
   AUTO_VOICE: process.env.AUTO_VOICE || "true",
   AUTO_STICKER: process.env.AUTO_STICKER || "true",
