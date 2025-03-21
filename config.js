@@ -56,7 +56,7 @@ function getBotSpeed() {
 }
 
 module.exports = {
-  SESSION_ID: process.env.SESSION_ID || "MtQ5WlbKR#fqJuGFSO5ckE5-lXsd68qG1W6r_CeKvZF5tYFoXDI-I",
+  SESSION_ID: process.env.SESSION_ID || "pdYSmRQR#eG4bmCbWaWZbT4IQsuzUe3R0CxsQkDwZ-JnoOtOqsh8",
   OWNER_NUM: process.env.OWNER_NUM || "94713670127",
   PREFIX: process.env.PREFIX || ".",
   ROYAL_NAME: process.env.ROYAL_NAME || "Frozen Queen",
